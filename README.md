@@ -1,2 +1,2 @@
 # laboratorio-de-girassol
-🌻 Laboratório do Girassol V2 é um app em HTML/JS para registrar e analisar o crescimento de girassóis, mostrando fases da planta, taxa de crescimento e gráficos automáticos com dados salvos no navegador.
+🌻 Laboratório de Probabilidade do Girassol é uma ferramenta em HTML/JS que analisa o crescimento de girassóis a partir de altura, idade e tamanho do vaso, estimando fase da planta, progresso e probabilidade de desenvolvimento.
