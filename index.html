@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Laboratório do Girassol V2</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+font-family:Arial;
+background:#0b0f1a;
+color:white;
+text-align:center;
+padding:20px;
+}
+
+.container{
+background:#111827;
+padding:20px;
+border-radius:10px;
+max-width:700px;
+margin:auto;
+}
+
+input{
+padding:8px;
+margin:5px;
+width:120px;
+}
+
+button{
+padding:10px;
+background:#22c55e;
+border:none;
+color:white;
+font-weight:bold;
+cursor:pointer;
+margin:5px;
+}
+
+.result{
+margin-top:15px;
+text-align:left;
+background:#020617;
+padding:15px;
+border-radius:10px;
+white-space:pre-line;
+}
+
+canvas{
+margin-top:20px;
+background:white;
+border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🌻 Laboratório do Girassol V2</h1>
+
+<div class="container">
+
+<input id="altura" placeholder="Altura (cm)">
+<input id="dias" placeholder="Dias">
+<input id="vaso" placeholder="Vaso (ml)">
+
+<br>
+
+<button onclick="salvar()">Salvar Medição</button>
+<button onclick="analisar()">Analisar</button>
+<button onclick="limpar()">Limpar Dados</button>
+
+<div class="result" id="resultado"></div>
+
+<canvas id="grafico"></canvas>
+
+</div>
+
+<script>
+
+let dados = JSON.parse(localStorage.getItem("girassol")) || [];
+
+function salvar(){
+
+let altura = parseFloat(document.getElementById("altura").value);
+let dias = parseFloat(document.getElementById("dias").value);
+let vaso = parseFloat(document.getElementById("vaso").value);
+
+dados.push({altura, dias, vaso});
+
+localStorage.setItem("girassol", JSON.stringify(dados));
+
+alert("Medição salva!");
+}
+
+function crescimentoReal(){
+
+if(dados.length < 2) return 0;
+
+let a = dados[dados.length-2];
+let b = dados[dados.length-1];
+
+return ((b.altura - a.altura) / (b.dias - a.dias)).toFixed(2);
+}
+
+function fase(dias){
+if(dias <= 7) return "Germinação";
+if(dias <= 40) return "Vegetativo";
+if(dias <= 65) return "Pré-floração";
+if(dias <= 90) return "Floração";
+return "Maturação";
+}
+
+function analisar(){
+
+if(dados.length === 0){
+document.getElementById("resultado").innerText = "Sem dados ainda.";
+return;
+}
+
+let last = dados[dados.length-1];
+
+let c = crescimentoReal();
+
+let max = last.vaso * 0.5; // modelo mais realista simples
+
+let progresso = ((last.altura / max) * 100).toFixed(1);
+
+let texto = `
+🌱 ALTURA: ${last.altura} cm
+📅 DIAS: ${last.dias}
+🪴 VASO: ${last.vaso} ml
+
+📊 Crescimento real: ${c} cm/dia
+🌿 Fase: ${fase(last.dias)}
+📈 Progresso: ${progresso} %
+
+⚠️ Limite estimado do vaso: ${max.toFixed(1)} cm
+`;
+
+document.getElementById("resultado").innerText = texto;
+
+plotar();
+}
+
+function plotar(){
+
+let ctx = document.getElementById("grafico");
+
+let labels = dados.map(d => d.dias);
+let valores = dados.map(d => d.altura);
+
+new Chart(ctx, {
+type:"line",
+data:{
+labels:labels,
+datasets:[{
+label:"Crescimento do Girassol",
+data:valores,
+borderColor:"green"
+}]
+}
+});
+}
+
+function limpar(){
+localStorage.removeItem("girassol");
+dados = [];
+document.getElementById("resultado").innerText = "";
+}
+
+</script>
+
+</body>
+  </html>
