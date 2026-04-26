@@ -2,9 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Laboratório do Girassol V2</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Laboratório de Probabilidade do Girassol</title>
 
 <style>
 body{
@@ -12,14 +10,18 @@ font-family:Arial;
 background:#0b0f1a;
 color:white;
 text-align:center;
-padding:20px;
+padding:30px;
+}
+
+h1{
+color:#ffd700;
 }
 
 .container{
 background:#111827;
 padding:20px;
 border-radius:10px;
-max-width:700px;
+max-width:600px;
 margin:auto;
 }
 
@@ -36,21 +38,14 @@ border:none;
 color:white;
 font-weight:bold;
 cursor:pointer;
-margin:5px;
+margin-top:10px;
 }
 
 .result{
-margin-top:15px;
+margin-top:20px;
 text-align:left;
 background:#020617;
 padding:15px;
-border-radius:10px;
-white-space:pre-line;
-}
-
-canvas{
-margin-top:20px;
-background:white;
 border-radius:10px;
 }
 </style>
@@ -58,120 +53,124 @@ border-radius:10px;
 
 <body>
 
-<h1>🌻 Laboratório do Girassol V2</h1>
+<h1>🌻 Laboratório de Probabilidade do Girassol</h1>
 
 <div class="container">
 
+<p>Digite os dados do seu girassol</p>
+
 <input id="altura" placeholder="Altura (cm)">
-<input id="dias" placeholder="Dias">
+<input id="dias" placeholder="Dias de vida">
 <input id="vaso" placeholder="Vaso (ml)">
 
 <br>
 
-<button onclick="salvar()">Salvar Medição</button>
-<button onclick="analisar()">Analisar</button>
-<button onclick="limpar()">Limpar Dados</button>
+<button onclick="analisar()">Analisar Planta</button>
 
 <div class="result" id="resultado"></div>
-
-<canvas id="grafico"></canvas>
 
 </div>
 
 <script>
 
-let dados = JSON.parse(localStorage.getItem("girassol")) || [];
+function fasePlanta(dias){
 
-function salvar(){
+if(dias <= 7) return "Germinação";
+
+if(dias <= 40) return "Vegetativa";
+
+if(dias <= 65) return "Pré-Floração";
+
+if(dias <= 90) return "Floração";
+
+return "Maturação / Morte próxima";
+
+}
+
+function alturaEsperada(vaso){
+
+if(vaso <= 250) return 40;
+
+if(vaso <= 500) return 60;
+
+if(vaso <= 1000) return 100;
+
+if(vaso <= 3000) return 150;
+
+return 200;
+
+}
+
+function analisar(){
 
 let altura = parseFloat(document.getElementById("altura").value);
 let dias = parseFloat(document.getElementById("dias").value);
 let vaso = parseFloat(document.getElementById("vaso").value);
 
-dados.push({altura, dias, vaso});
+let crescimento = (altura / dias).toFixed(2);
 
-localStorage.setItem("girassol", JSON.stringify(dados));
+let fase = fasePlanta(dias);
 
-alert("Medição salva!");
-}
+let maxAltura = alturaEsperada(vaso);
 
-function crescimentoReal(){
+let progresso = ((altura / maxAltura) * 100).toFixed(1);
 
-if(dados.length < 2) return 0;
+let diasFlor = 70 - dias;
 
-let a = dados[dados.length-2];
-let b = dados[dados.length-1];
+let raizLimitada = vaso < 300 ? "Alta probabilidade" : "Baixa probabilidade";
 
-return ((b.altura - a.altura) / (b.dias - a.dias)).toFixed(2);
-}
-
-function fase(dias){
-if(dias <= 7) return "Germinação";
-if(dias <= 40) return "Vegetativo";
-if(dias <= 65) return "Pré-floração";
-if(dias <= 90) return "Floração";
-return "Maturação";
-}
-
-function analisar(){
-
-if(dados.length === 0){
-document.getElementById("resultado").innerText = "Sem dados ainda.";
-return;
-}
-
-let last = dados[dados.length-1];
-
-let c = crescimentoReal();
-
-let max = last.vaso * 0.5; // modelo mais realista simples
-
-let progresso = ((last.altura / max) * 100).toFixed(1);
+let probCrescimento = Math.max(0,(100 - progresso)).toFixed(1);
 
 let texto = `
-🌱 ALTURA: ${last.altura} cm
-📅 DIAS: ${last.dias}
-🪴 VASO: ${last.vaso} ml
 
-📊 Crescimento real: ${c} cm/dia
-🌿 Fase: ${fase(last.dias)}
-📈 Progresso: ${progresso} %
+Altura atual: ${altura} cm
 
-⚠️ Limite estimado do vaso: ${max.toFixed(1)} cm
+Idade: ${dias} dias
+
+Volume do vaso: ${vaso} ml
+
+----------------------------------
+
+Crescimento médio diário:
+${crescimento} cm/dia
+
+----------------------------------
+
+Fase da planta:
+${fase}
+
+----------------------------------
+
+Altura máxima provável no vaso:
+${maxAltura} cm
+
+----------------------------------
+
+Progresso do crescimento:
+${progresso} %
+
+----------------------------------
+
+Probabilidade de continuar crescendo:
+${probCrescimento} %
+
+----------------------------------
+
+Dias estimados para início da floração:
+${diasFlor > 0 ? diasFlor : "já iniciou"}
+
+----------------------------------
+
+Risco de limitação de raiz:
+${raizLimitada}
+
 `;
 
 document.getElementById("resultado").innerText = texto;
 
-plotar();
-}
-
-function plotar(){
-
-let ctx = document.getElementById("grafico");
-
-let labels = dados.map(d => d.dias);
-let valores = dados.map(d => d.altura);
-
-new Chart(ctx, {
-type:"line",
-data:{
-labels:labels,
-datasets:[{
-label:"Crescimento do Girassol",
-data:valores,
-borderColor:"green"
-}]
-}
-});
-}
-
-function limpar(){
-localStorage.removeItem("girassol");
-dados = [];
-document.getElementById("resultado").innerText = "";
 }
 
 </script>
 
 </body>
-  </html>
+</html>
